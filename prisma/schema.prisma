@@ -1,0 +1,265 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  PROVIDER
+}
+
+enum AuditAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  FAILED_LOGIN
+  PASSWORD_CHANGE
+  ROLE_CHANGE
+  DATA_EXPORT
+  BULK_OPERATION
+  SYSTEM_EVENT
+}
+
+enum AuditSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  password     String
+  role         UserRole @default(PROVIDER)
+  refreshToken String?
+  resetToken   String?
+  resetExpires DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  orders       Order[]
+  orderTemplates OrderTemplate[]
+  notifications Notification[]
+  auditLogs    AuditLog[]
+  securityEvents SecurityEvent[]
+  loginSessions LoginSession[]
+  reportTemplates ReportTemplate[]
+  reports      Report[]
+}
+
+model Medicine {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  description String?
+  quantity    Int
+  price       Float
+  category    String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+  orderTemplateItems OrderTemplateItem[]
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  status      String      @default("PENDING") // e.g., "PENDING", "COMPLETED", "CANCELLED"
+  totalPrice  Float
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id])
+  medicineId String
+  medicine   Medicine @relation(fields: [medicineId], references: [id])
+  quantity   Int
+  price      Float
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String?  // Optional - null for system-wide notifications
+  user      User?    @relation(fields: [userId], references: [id])
+  event     String
+  details   String
+  type      String   // ORDER, INVENTORY, SYSTEM, SHIPMENT, PRICE_CHANGE, STOCK_ALERT, PROMOTION
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  category  String   // GENERAL, NOTIFICATION, INTEGRATION, BACKUP, ORGANIZATION
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  invoiceId   String   @unique
+  orderId     String
+  customerName String
+  customerEmail String
+  billingAddress String
+  amount      Float
+  tax         Float    @default(0)
+  discount    Float    @default(0)
+  totalAmount Float
+  dueDate     DateTime
+  status      String   @default("DRAFT") // DRAFT, SENT, PAID, OVERDUE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model OrderTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       OrderTemplateItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model OrderTemplateItem {
+  id         String   @id @default(cuid())
+  templateId String
+  template   OrderTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  medicineId String
+  medicine   Medicine @relation(fields: [medicineId], references: [id])
+  quantity   Int
+  price      Float
+}
+
+model AuditLog {
+  id          String        @id @default(cuid())
+  userId      String?       // Optional - null for system events
+  user        User?         @relation(fields: [userId], references: [id])
+  action      AuditAction
+  resource    String        // Table/entity name (e.g., "User", "Order", "Medicine")
+  resourceId  String?       // ID of the affected resource
+  description String
+  details     Json?         // Additional data about the change
+  ipAddress   String?
+  userAgent   String?
+  severity    AuditSeverity @default(MEDIUM)
+  metadata    Json?         // Additional metadata
+  createdAt   DateTime      @default(now())
+}
+
+model SecurityEvent {
+  id          String        @id @default(cuid())
+  userId      String?       // Optional - null for system events
+  user        User?         @relation(fields: [userId], references: [id])
+  eventType   String        // e.g., "SUSPICIOUS_LOGIN", "MULTIPLE_FAILED_ATTEMPTS", "UNAUTHORIZED_ACCESS"
+  description String
+  ipAddress   String?
+  userAgent   String?
+  severity    AuditSeverity @default(MEDIUM)
+  resolved    Boolean       @default(false)
+  resolvedAt  DateTime?
+  resolvedBy  String?       // User ID who resolved it
+  metadata    Json?         // Additional event data
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model LoginSession {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId   String   @unique
+  ipAddress   String?
+  userAgent   String?
+  isActive    Boolean  @default(true)
+  lastActivity DateTime @default(now())
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ReportTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  category    String   // e.g., "Sales", "Inventory", "Users", "Financial"
+  isPublic    Boolean  @default(false)
+  createdBy   String
+  creator     User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  config      Json     // Report configuration (filters, fields, charts, etc.)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  reports     Report[]
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  templateId  String?
+  template    ReportTemplate? @relation(fields: [templateId], references: [id])
+  createdBy   String
+  creator     User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  config      Json     // Report configuration
+  status      ReportStatus @default(PENDING)
+  format      ReportFormat @default(JSON)
+  filePath    String?  // Path to generated file
+  fileSize    Int?     // File size in bytes
+  expiresAt   DateTime? // When the file should be deleted
+  scheduledAt DateTime? // For scheduled reports
+  completedAt DateTime?
+  errorMessage String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  executions  ReportExecution[]
+}
+
+model ReportExecution {
+  id        String   @id @default(cuid())
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  status    ReportStatus @default(PENDING)
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+  filePath  String?
+  fileSize  Int?
+  errorMessage String?
+  createdAt DateTime @default(now())
+}
+
+enum ReportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ReportFormat {
+  JSON
+  CSV
+  EXCEL
+  PDF
+}
+
+
