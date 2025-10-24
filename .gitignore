@@ -59,7 +59,7 @@ build/
 *.sqlite3
 
 # Prisma
-prisma/migrations/
+# prisma/migrations/ - Commented out to include migrations in Docker build
 
 # Special files
 nul

@@ -48,6 +48,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nestjs:nodejs /app/start.sh ./start.sh
 
+# Ensure migrations directory exists and has proper permissions
+RUN mkdir -p ./prisma/migrations && chown -R nestjs:nodejs ./prisma
+
 # Make startup script executable
 RUN chmod +x ./start.sh
 
