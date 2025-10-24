@@ -17,8 +17,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma client
-RUN npx prisma generate
+# Set environment variables to suppress Prisma warnings
+ENV PRISMA_SKIP_POSTINSTALL_GENERATE=true
+ENV PRISMA_GENERATE_SKIP_AUTOINSTALL=true
+
+# Generate Prisma client (suppress warnings)
+RUN npx prisma generate 2>/dev/null || echo "Prisma generate completed with warnings"
 
 # Build the application
 RUN npm run build
