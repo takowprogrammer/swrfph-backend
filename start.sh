@@ -6,7 +6,7 @@ export PRISMA_GENERATE_SKIP_AUTOINSTALL=true
 
 # Run database migrations (ignore warnings)
 echo "Running database migrations..."
-npx prisma migrate deploy --accept-data-loss 2>/dev/null || echo "Migration completed with warnings"
+npx prisma migrate deploy --schema=./prisma/schema.prisma --accept-data-loss 2>/dev/null || echo "Migration completed with warnings"
 
 # Generate Prisma client (suppress warnings)
 echo "Generating Prisma client..."
