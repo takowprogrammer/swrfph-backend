@@ -43,6 +43,10 @@ RUN adduser --system --uid 1001 nestjs
 COPY package.json package-lock.json* ./
 RUN npm ci --only=production && npm cache clean --force
 
+# Copy the generated Prisma client from builder stage
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules/@prisma/client ./node_modules/@prisma/client
+
 # Copy the built application
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma

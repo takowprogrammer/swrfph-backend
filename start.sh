@@ -13,13 +13,8 @@ npx prisma migrate deploy --schema=./prisma/schema.prisma || {
 }
 echo "✅ Migrations completed"
 
-# Generate Prisma client
-echo "🔄 Generating Prisma client..."
-npx prisma generate --schema=./prisma/schema.prisma || {
-    echo "❌ Prisma generate failed"
-    exit 1
-}
-echo "✅ Prisma client generated"
+# Prisma client is already generated during Docker build
+echo "✅ Using pre-generated Prisma client from build stage"
 
 # Start the application
 echo "🚀 Starting NestJS application..."
