@@ -28,6 +28,8 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
+ENV PRISMA_SKIP_POSTINSTALL_GENERATE=true
+ENV PRISMA_GENERATE_SKIP_AUTOINSTALL=true
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
@@ -39,6 +41,10 @@ RUN npm ci --only=production && npm cache clean --force
 # Copy the built application
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nestjs:nodejs /app/start.sh ./start.sh
+
+# Make startup script executable
+RUN chmod +x ./start.sh
 
 USER nestjs
 
@@ -48,4 +54,4 @@ ENV PORT 5000
 ENV HOSTNAME "0.0.0.0"
 
 # Run database migrations and start the application
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run start:prod"]
+CMD ["./start.sh"]
