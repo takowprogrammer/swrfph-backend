@@ -28,9 +28,9 @@ async function bootstrap() {
     app.use(helmet());
 
     logger.log('🌐 Configuring CORS...');
-    
+
     // Get CORS origins from environment variable or use defaults
-    const corsOrigins = process.env.CORS_ORIGINS 
+    const corsOrigins = process.env.CORS_ORIGINS
         ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
         : [
             'http://localhost:3000',
@@ -41,9 +41,9 @@ async function bootstrap() {
             'http://127.0.0.1:3002',
             'http://localhost:5000',
         ];
-    
+
     logger.log(`🌐 CORS Origins: ${corsOrigins.join(', ')}`);
-    
+
     app.enableCors({
         origin: corsOrigins,
         credentials: true,
@@ -62,9 +62,9 @@ async function bootstrap() {
     SwaggerModule.setup('docs', app, document);
 
     const port = process.env.PORT || 5000;
-    logger.log(`🚀 Server starting on port ${port}...`);
+    logger.log(`🚀 Server starting on port ${port} and host 0.0.0.0...`);
 
-    await app.listen(port);
+    await app.listen(port, '0.0.0.0');
 
     logger.log(`✅ Server successfully started on port ${port}`);
     logger.log(`📖 API Documentation available at http://localhost:${port}/docs`);
