@@ -7,7 +7,7 @@ export PRISMA_GENERATE_SKIP_AUTOINSTALL=true
 
 # Run database migrations
 echo "🔄 Running database migrations..."
-npx prisma migrate deploy --schema=./prisma/schema.prisma --accept-data-loss || {
+npx prisma migrate deploy --schema=./prisma/schema.prisma || {
     echo "❌ Migration failed"
     exit 1
 }
