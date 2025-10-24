@@ -23,7 +23,7 @@ ENV PRISMA_GENERATE_SKIP_AUTOINSTALL=true
 ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy"
 
 # Generate Prisma client first (required for TypeScript compilation)
-RUN npx prisma generate
+RUN npx prisma generate --schema=./prisma/schema.prisma
 
 # Build the application
 RUN npm run build

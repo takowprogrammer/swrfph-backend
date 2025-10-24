@@ -10,7 +10,7 @@ npx prisma migrate deploy --accept-data-loss 2>/dev/null || echo "Migration comp
 
 # Generate Prisma client (suppress warnings)
 echo "Generating Prisma client..."
-npx prisma generate 2>/dev/null || echo "Prisma generate completed with warnings"
+npx prisma generate --schema=./prisma/schema.prisma 2>/dev/null || echo "Prisma generate completed with warnings"
 
 # Start the application
 echo "Starting the application..."
