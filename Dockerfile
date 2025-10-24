@@ -17,12 +17,13 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set environment variables to suppress Prisma warnings
+# Set environment variables for Prisma
 ENV PRISMA_SKIP_POSTINSTALL_GENERATE=true
 ENV PRISMA_GENERATE_SKIP_AUTOINSTALL=true
+ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy"
 
-# Generate Prisma client (suppress warnings)
-RUN npx prisma generate 2>/dev/null || echo "Prisma generate completed with warnings"
+# Generate Prisma client first (required for TypeScript compilation)
+RUN npx prisma generate
 
 # Build the application
 RUN npm run build
