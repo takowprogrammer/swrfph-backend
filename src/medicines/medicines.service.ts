@@ -58,7 +58,7 @@ export class MedicinesService {
                 },
             };
         } catch (error) {
-            this.logger.error(`❌ Error finding medicines:`, error);
+            this.logger.error(`❌ Error finding medicines:`, error.stack || error);
             throw error;
         }
     }
