@@ -16,4 +16,8 @@ export class CreateMedicineDto {
     @IsNumber()
     @Min(0)
     price: number;
+
+    @IsString()
+    @IsOptional()
+    category?: string;
 }
